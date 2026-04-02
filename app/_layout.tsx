@@ -3,8 +3,14 @@ import { Stack } from 'expo-router';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { supabase } from '../lib/supabase-client/config';
 import { getUserSettings } from '../lib/supabase-client';
+import { initGemini } from '../lib/ai-client';
 import { useAuthStore } from '../lib/stores/auth-store';
 import { useUserStore } from '../lib/stores/user-store';
+
+const geminiKey = process.env.GEMINI_API_KEY;
+if (geminiKey) {
+  initGemini(geminiKey);
+}
 
 export default function RootLayout() {
   const { user, isLoading, setUser, setLoading } = useAuthStore();
@@ -49,6 +55,14 @@ export default function RootLayout() {
           <Stack.Screen
             name="review/[id]"
             options={{ headerShown: true, title: '復習', presentation: 'modal' }}
+          />
+          <Stack.Screen
+            name="learn/memo"
+            options={{ headerShown: true, title: 'メモを入力', headerStyle: { backgroundColor: '#1a1a2e' }, headerTintColor: '#fff' }}
+          />
+          <Stack.Screen
+            name="learn/confirm"
+            options={{ headerShown: true, title: '要点の確認', headerStyle: { backgroundColor: '#1a1a2e' }, headerTintColor: '#fff' }}
           />
         </>
       ) : (

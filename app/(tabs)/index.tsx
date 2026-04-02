@@ -1,21 +1,29 @@
-import { useEffect, useState } from 'react';
+import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { useAuthStore } from '../../lib/stores/auth-store';
 import { useUserStore } from '../../lib/stores/user-store';
-import { getDueCards } from '../../lib/supabase-client';
+import { getDueCards, getUserSettings } from '../../lib/supabase-client';
+import type { UserSettings } from '../../lib/types';
 
 export default function HomeScreen() {
   const user = useAuthStore((s) => s.user);
   const settings = useUserStore((s) => s.settings);
+  const setSettings = useUserStore((s) => s.setSettings);
   const [dueCount, setDueCount] = useState(0);
 
-  useEffect(() => {
-    if (!user) return;
-    getDueCards(user.id).then(({ data }) => {
-      setDueCount(data?.length ?? 0);
-    });
-  }, [user]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) return;
+      getDueCards(user.id).then(({ data }) => {
+        setDueCount(data?.length ?? 0);
+      });
+      getUserSettings(user.id).then(({ data }) => {
+        if (data) setSettings(data as UserSettings);
+      });
+    }, [user, setSettings]),
+  );
 
   return (
     <SafeAreaView style={styles.container}>

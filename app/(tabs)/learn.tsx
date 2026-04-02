@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native';
+import { useRouter } from 'expo-router';
 
 const sources = [
   {
@@ -20,6 +21,16 @@ const sources = [
 ];
 
 export default function LearnScreen() {
+  const router = useRouter();
+
+  const handlePress = (title: string) => {
+    if (title === 'メモを入力') {
+      router.push('/learn/memo');
+    } else {
+      console.log(title);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
@@ -29,7 +40,7 @@ export default function LearnScreen() {
             key={source.title}
             style={styles.card}
             activeOpacity={0.7}
-            onPress={() => console.log(source.title)}
+            onPress={() => handlePress(source.title)}
           >
             <Text style={styles.icon}>{source.icon}</Text>
             <View style={styles.cardText}>
