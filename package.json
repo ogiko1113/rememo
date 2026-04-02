@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@sentry/react-native": "^8.7.0",
     "@supabase/supabase-js": "^2.45.0",
     "expo": "~52.0.0",
     "expo-router": "~4.0.0",

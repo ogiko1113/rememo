@@ -1,18 +1,25 @@
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import * as Sentry from '@sentry/react-native';
 import { supabase } from '../lib/supabase-client/config';
 import { getUserSettings } from '../lib/supabase-client';
 import { initGemini } from '../lib/ai-client';
 import { useAuthStore } from '../lib/stores/auth-store';
 import { useUserStore } from '../lib/stores/user-store';
 
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  tracesSampleRate: 1.0,
+  enabled: !!process.env.EXPO_PUBLIC_SENTRY_DSN,
+});
+
 const geminiKey = process.env.GEMINI_API_KEY;
 if (geminiKey) {
   initGemini(geminiKey);
 }
 
-export default function RootLayout() {
+export default Sentry.wrap(function RootLayout() {
   const { user, isLoading, setUser, setLoading } = useAuthStore();
   const { setSettings } = useUserStore();
 
@@ -70,7 +77,7 @@ export default function RootLayout() {
       )}
     </Stack>
   );
-}
+});
 
 const styles = StyleSheet.create({
   loading: {
