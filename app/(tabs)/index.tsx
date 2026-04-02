@@ -1,29 +1,36 @@
 import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useAuthStore } from '../../lib/stores/auth-store';
 import { useUserStore } from '../../lib/stores/user-store';
 import { getDueCards, getUserSettings } from '../../lib/supabase-client';
 import type { UserSettings } from '../../lib/types';
 
+interface DueCard {
+  id: string;
+}
+
 export default function HomeScreen() {
+  const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const settings = useUserStore((s) => s.settings);
   const setSettings = useUserStore((s) => s.setSettings);
-  const [dueCount, setDueCount] = useState(0);
+  const [dueCards, setDueCards] = useState<DueCard[]>([]);
 
   useFocusEffect(
     useCallback(() => {
       if (!user) return;
       getDueCards(user.id).then(({ data }) => {
-        setDueCount(data?.length ?? 0);
+        setDueCards((data as DueCard[] | null) ?? []);
       });
       getUserSettings(user.id).then(({ data }) => {
         if (data) setSettings(data as UserSettings);
       });
     }, [user, setSettings]),
   );
+
+  const dueCount = dueCards.length;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -38,7 +45,10 @@ export default function HomeScreen() {
           ) : (
             <>
               <Text style={styles.cardCount}>{dueCount}件</Text>
-              <TouchableOpacity style={styles.reviewButton}>
+              <TouchableOpacity
+                style={styles.reviewButton}
+                onPress={() => router.push(`/review/${dueCards[0].id}`)}
+              >
                 <Text style={styles.reviewButtonText}>復習を始める</Text>
               </TouchableOpacity>
             </>
