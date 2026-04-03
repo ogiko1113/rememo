@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
-    "@sentry/react-native": "^8.7.0",
     "@supabase/supabase-js": "^2.45.0",
     "expo": "~54.0.0",
     "expo-router": "~5.0.0",
