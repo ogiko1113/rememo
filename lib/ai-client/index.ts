@@ -1,32 +1,21 @@
 import type { ExtractionResult, ScoringResult, KeyPoint } from '../types';
 import { EXTRACTION_PROMPT, SCORING_PROMPT } from './prompts';
-import { getSupabase } from '../supabase-client';
 
-const GEMINI_MODEL = 'gemini-2.5-flash';
+// TODO: 動作確認後に gemini-2.5-flash への移行を検討
+const GEMINI_MODEL = 'gemini-2.0-flash-001';
 const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models';
 
-async function callGeminiViaEdgeFunction<T>(
+async function callGemini<T>(
   systemPrompt: string,
   userContent: string,
   maxOutputTokens = 1000,
 ): Promise<T> {
-  const supabase = getSupabase();
-  const { data, error } = await supabase.functions.invoke('gemini-proxy', {
-    body: { systemPrompt, userContent, maxOutputTokens },
-  });
+  const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error('EXPO_PUBLIC_GEMINI_API_KEY is not set');
+  }
 
-  if (error) throw new Error(`Edge Function error: ${error.message}`);
-  if (!data) throw new Error('Empty response from Edge Function');
-  return data as T;
-}
-
-// TODO: 本番前にEdge Function経由に完全移行。この暫定コードを削除すること
-async function callGeminiFallback<T>(
-  apiKey: string,
-  systemPrompt: string,
-  userContent: string,
-  maxOutputTokens = 1000,
-): Promise<T> {
+  // TODO: 本番前にSupabase Edge Function経由に移行し、APIキーをクライアントから除去すること
   const response = await fetch(
     `${GEMINI_ENDPOINT}/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
     {
@@ -39,27 +28,28 @@ async function callGeminiFallback<T>(
       }),
     },
   );
-  if (!response.ok) throw new Error(`Gemini API error ${response.status}: ${await response.text()}`);
-  const data = await response.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error('Empty response from Gemini');
-  return JSON.parse(text) as T;
-}
 
-async function callGemini<T>(
-  systemPrompt: string,
-  userContent: string,
-  maxOutputTokens = 1000,
-): Promise<T> {
+  if (!response.ok) {
+    throw new Error(`Gemini API error ${response.status}: ${await response.text()}`);
+  }
+
+  const data = await response.json();
+  console.log('[Gemini] raw response:', JSON.stringify(data, null, 2));
+
+  const candidates = data.candidates;
+  if (!candidates || candidates.length === 0) {
+    throw new Error(`Gemini returned no candidates: ${JSON.stringify(data)}`);
+  }
+
+  const text = candidates[0]?.content?.parts?.[0]?.text;
+  if (!text) {
+    throw new Error(`Gemini returned empty text: ${JSON.stringify(candidates[0])}`);
+  }
+
   try {
-    return await callGeminiViaEdgeFunction<T>(systemPrompt, userContent, maxOutputTokens);
+    return JSON.parse(text) as T;
   } catch {
-    // TODO: 本番前にEdge Function経由に完全移行。この暫定コードを削除すること
-    const fallbackKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
-    if (fallbackKey) {
-      return callGeminiFallback<T>(fallbackKey, systemPrompt, userContent, maxOutputTokens);
-    }
-    throw new Error('Gemini API is not available. Edge Function not deployed and no fallback key.');
+    throw new Error(`Failed to parse Gemini response as JSON: ${text.slice(0, 500)}`);
   }
 }
 
