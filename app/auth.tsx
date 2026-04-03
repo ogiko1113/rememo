@@ -10,8 +10,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { Redirect } from 'expo-router';
-import { signIn, signUp } from '../lib/supabase-client';
-import { useAuthStore } from '../lib/stores/auth-store';
+import { signIn, signUp } from '@/lib/supabase-client';
+import { useAuthStore } from '@/lib/stores/auth-store';
 
 export default function AuthScreen() {
   const user = useAuthStore((s) => s.user);
