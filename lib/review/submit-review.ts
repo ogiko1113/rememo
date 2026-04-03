@@ -1,6 +1,6 @@
 import { scoreExplanation } from '../ai-client';
 import { reviewCard, scoreToQuality } from '../srs-engine';
-import { getSupabase, updateSRSCard, consumePoints } from '../supabase-client';
+import { getSupabase } from '../supabase-client';
 import { getKeyPointsForEvent } from '../supabase-client/queries';
 import type { ScoringResult, SRSReviewResult, KeyPoint } from '../types';
 import { XP_REWARDS } from '../types';
@@ -37,58 +37,42 @@ export async function submitReview(
       return { success: false, error: '要点が見つかりませんでした' };
     }
 
-    // 2. AI scoring
+    // 2. AI scoring (client-side — outside DB transaction)
     const scoringResult = await scoreExplanation(allKeyPoints, userAnswer);
 
-    // 3. SRS update
+    // 3. SRS calculation (client-side — outside DB transaction)
     const quality = scoreToQuality(scoringResult.score);
     const reviewResult = reviewCard(card, quality);
 
-    // 4. Update SRS card in database
-    await updateSRSCard(card.id, {
-      easiness_factor: reviewResult.new_easiness_factor,
-      interval: reviewResult.new_interval,
-      repetitions: reviewResult.new_repetitions,
-      next_review_at: reviewResult.next_review_at,
-      last_reviewed_at: new Date().toISOString(),
-    });
-
+    // 4. Atomic DB update via RPC
     const supabase = getSupabase();
-
-    // 5. Save review session
-    await supabase.from('review_sessions').insert({
-      user_id: userId,
-      srs_card_id: card.id,
-      answer_mode: 'text',
-      user_answer: userAnswer,
-      score: scoringResult.score,
-      covered_points: scoringResult.covered_points,
-      missed_points: scoringResult.missed_points,
-      inaccuracies: scoringResult.inaccuracies,
-      feedback_message: scoringResult.feedback_message,
-      follow_up_question: scoringResult.follow_up_question,
-      srs_quality: scoringResult.srs_quality,
-      xp_earned: XP_REWARDS.text_answer,
-      points_consumed: 1,
+    const { data, error } = await supabase.rpc('submit_review_atomic', {
+      p_user_id: userId,
+      p_card_id: card.id,
+      p_answer_mode: 'text',
+      p_user_answer: userAnswer,
+      p_score: scoringResult.score,
+      p_covered_points: scoringResult.covered_points,
+      p_missed_points: scoringResult.missed_points,
+      p_inaccuracies: scoringResult.inaccuracies,
+      p_feedback_message: scoringResult.feedback_message,
+      p_follow_up_question: scoringResult.follow_up_question,
+      p_srs_quality: scoringResult.srs_quality,
+      p_xp_earned: XP_REWARDS.text_answer,
+      p_points_to_consume: 1,
+      p_new_ef: reviewResult.new_easiness_factor,
+      p_new_interval: reviewResult.new_interval,
+      p_new_repetitions: reviewResult.new_repetitions,
+      p_next_review_at: reviewResult.next_review_at,
     });
 
-    // 6. Consume points
-    await consumePoints(userId, 'consume_text_answer', 1, { srs_card_id: card.id });
+    if (error) {
+      return { success: false, error: error.message };
+    }
 
-    // 7. Add XP
-    const { data: settings } = await supabase
-      .from('user_settings')
-      .select('total_xp')
-      .eq('user_id', userId)
-      .single();
-    if (settings) {
-      await supabase
-        .from('user_settings')
-        .update({
-          total_xp: settings.total_xp + XP_REWARDS.text_answer,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('user_id', userId);
+    const result = data as { success: boolean; error?: string };
+    if (!result.success) {
+      return { success: false, error: result.error ?? '採点に失敗しました' };
     }
 
     return { success: true, scoringResult, reviewResult };
