@@ -9,13 +9,20 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import { Redirect } from 'expo-router';
 import { signIn, signUp } from '../lib/supabase-client';
+import { useAuthStore } from '../lib/stores/auth-store';
 
 export default function AuthScreen() {
+  const user = useAuthStore((s) => s.user);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  if (user) {
+    return <Redirect href="/" />;
+  }
 
   const handleSignIn = async () => {
     setError('');
