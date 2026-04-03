@@ -6,7 +6,6 @@
     "orientation": "portrait",
     "scheme": "rememo",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": false,
     "ios": {
       "bundleIdentifier": "com.rememo.app",
       "supportsTablet": true
