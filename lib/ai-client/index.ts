@@ -1,8 +1,7 @@
 import type { ExtractionResult, ScoringResult, KeyPoint } from '../types';
 import { EXTRACTION_PROMPT, SCORING_PROMPT } from './prompts';
 
-// TODO: 動作確認後に gemini-2.5-flash への移行を検討
-const GEMINI_MODEL = 'gemini-2.0-flash-001';
+const GEMINI_MODEL = 'gemini-2.5-flash';
 const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models';
 
 async function callGemini<T>(
