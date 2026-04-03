@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 
@@ -7,27 +7,32 @@ const sources = [
     icon: '📝',
     title: 'メモを入力',
     description: '思いついたことや学んだことを書く',
+    implemented: true,
   },
   {
     icon: '🎥',
     title: 'YouTube URL',
     description: '動画の要点をAIが抽出',
+    implemented: false,
   },
   {
     icon: '📚',
     title: '本の撮影/PDF',
     description: 'ページを撮影して要点抽出',
+    implemented: false,
   },
 ];
 
 export default function LearnScreen() {
   const router = useRouter();
 
-  const handlePress = (title: string) => {
-    if (title === 'メモを入力') {
+  const handlePress = (source: typeof sources[number]) => {
+    if (!source.implemented) {
+      Alert.alert('準備中', 'この機能はまもなく追加されます');
+      return;
+    }
+    if (source.title === 'メモを入力') {
       router.push('/learn/memo');
-    } else {
-      console.log(title);
     }
   };
 
@@ -38,13 +43,15 @@ export default function LearnScreen() {
         {sources.map((source) => (
           <TouchableOpacity
             key={source.title}
-            style={styles.card}
+            style={[styles.card, !source.implemented && styles.cardDisabled]}
             activeOpacity={0.7}
-            onPress={() => handlePress(source.title)}
+            onPress={() => handlePress(source)}
           >
             <Text style={styles.icon}>{source.icon}</Text>
             <View style={styles.cardText}>
-              <Text style={styles.cardTitle}>{source.title}</Text>
+              <Text style={styles.cardTitle}>
+                {source.title}{!source.implemented ? '（準備中）' : ''}
+              </Text>
               <Text style={styles.cardDescription}>{source.description}</Text>
             </View>
           </TouchableOpacity>
@@ -77,6 +84,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
+  },
+  cardDisabled: {
+    opacity: 0.5,
   },
   icon: {
     fontSize: 32,

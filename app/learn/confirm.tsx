@@ -16,16 +16,8 @@ import { useLearningStore } from '../../lib/stores/learning-store';
 import { extractKeyPoints } from '../../lib/ai-client';
 import { getUserSettings } from '../../lib/supabase-client';
 import { saveLearningEvent } from '../../lib/learning/save-learning-event';
-import type { KeyPoint, KeyPointType } from '../../lib/types';
-
-const TYPE_ICONS: Record<KeyPointType, string> = {
-  definition: '📖',
-  comparison: '⚖️',
-  causation: '🔗',
-  procedure: '📋',
-  exception: '⚠️',
-  application: '💡',
-};
+import type { KeyPoint } from '../../lib/types';
+import KeyPointCard from '../../components/KeyPointCard';
 
 export default function ConfirmScreen() {
   const router = useRouter();
@@ -64,7 +56,6 @@ export default function ConfirmScreen() {
 
       if (result.success) {
         clear();
-        // Refresh user settings (point balance changed)
         const { data } = await getUserSettings(user.id);
         if (data) {
           setSettings(data as import('../../lib/types').UserSettings);
@@ -96,30 +87,6 @@ export default function ConfirmScreen() {
     }
   };
 
-  const renderKeyPoint = ({ item, index }: { item: KeyPoint; index: number }) => (
-    <View style={styles.kpCard}>
-      <View style={styles.kpHeader}>
-        <Text style={styles.kpIcon}>{TYPE_ICONS[item.type] ?? '📝'}</Text>
-        <View style={styles.kpStars}>
-          {Array.from({ length: item.importance }, (_, i) => (
-            <Text key={i} style={styles.star}>⭐</Text>
-          ))}
-        </View>
-        <TouchableOpacity onPress={() => handleDelete(index)} style={styles.deleteBtn}>
-          <Text style={styles.deleteText}>✕</Text>
-        </TouchableOpacity>
-      </View>
-      <Text style={styles.kpContent}>{item.content}</Text>
-      <View style={styles.kpTags}>
-        {item.keywords.map((kw) => (
-          <View key={kw} style={styles.tag}>
-            <Text style={styles.tagText}>{kw}</Text>
-          </View>
-        ))}
-      </View>
-    </View>
-  );
-
   const isLoading = saving || retrying;
 
   return (
@@ -127,7 +94,9 @@ export default function ConfirmScreen() {
       <FlatList
         data={keyPoints}
         keyExtractor={(_, i) => String(i)}
-        renderItem={renderKeyPoint}
+        renderItem={({ item, index }) => (
+          <KeyPointCard item={item} index={index} onDelete={handleDelete} />
+        )}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
           <>
@@ -213,56 +182,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: 12,
-  },
-  kpCard: {
-    backgroundColor: '#16213e',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-  },
-  kpHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  kpIcon: {
-    fontSize: 20,
-    marginRight: 8,
-  },
-  kpStars: {
-    flexDirection: 'row',
-    flex: 1,
-  },
-  star: {
-    fontSize: 12,
-  },
-  deleteBtn: {
-    padding: 4,
-  },
-  deleteText: {
-    color: '#64748b',
-    fontSize: 16,
-  },
-  kpContent: {
-    color: '#ffffff',
-    fontSize: 15,
-    lineHeight: 22,
-    marginBottom: 8,
-  },
-  kpTags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  tag: {
-    backgroundColor: '#0f172a',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  tagText: {
-    color: '#6366f1',
-    fontSize: 12,
   },
   footer: {
     padding: 24,

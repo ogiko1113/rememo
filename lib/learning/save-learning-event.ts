@@ -1,5 +1,4 @@
 import { getSupabase } from '../supabase-client';
-import { createDefaultCard } from '../srs-engine';
 import type { ExtractionResult } from '../types';
 
 export async function saveLearningEvent(
@@ -11,58 +10,26 @@ export async function saveLearningEvent(
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = getSupabase();
 
-  // 1. learning_events に保存
-  const { data: event, error: eventError } = await supabase
-    .from('learning_events')
-    .insert({
-      user_id: userId,
-      source_type: sourceType,
-      source_url: sourceUrl ?? null,
-      title: extractionResult.title,
-      summary: extractionResult.summary,
-      raw_text: rawText ?? null,
-      difficulty: extractionResult.difficulty,
-    })
-    .select()
-    .single();
-
-  if (eventError || !event) {
-    return { success: false, error: eventError?.message ?? '保存に失敗しました' };
-  }
-
-  // 2. learning_units に要点を保存
-  const units = extractionResult.key_points.map((kp) => ({
-    learning_event_id: event.id,
-    key_point: kp,
-  }));
-
-  const { data: savedUnits, error: unitsError } = await supabase
-    .from('learning_units')
-    .insert(units)
-    .select();
-
-  if (unitsError || !savedUnits) {
-    return { success: false, error: unitsError?.message ?? '要点の保存に失敗しました' };
-  }
-
-  // 3. 各学習ユニットに対してSRSカードを自動生成
-  const cards = savedUnits.map((unit) => createDefaultCard(userId, unit.id));
-
-  const { error: cardsError } = await supabase
-    .from('srs_cards')
-    .insert(cards);
-
-  if (cardsError) {
-    return { success: false, error: cardsError.message };
-  }
-
-  // 4. ポイント消費（メモ = 1pt）
-  await supabase.rpc('consume_points', {
+  const { data, error } = await supabase.rpc('save_learning_event_atomic', {
     p_user_id: userId,
-    p_type: 'consume_memo',
-    p_points: 1,
-    p_metadata: { learning_event_id: event.id },
+    p_source_type: sourceType,
+    p_source_url: sourceUrl ?? null,
+    p_title: extractionResult.title,
+    p_summary: extractionResult.summary,
+    p_raw_text: rawText ?? null,
+    p_difficulty: extractionResult.difficulty,
+    p_key_points: extractionResult.key_points,
+    p_points_to_consume: 1,
   });
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  const result = data as { success: boolean; error?: string };
+  if (!result.success) {
+    return { success: false, error: result.error ?? '保存に失敗しました' };
+  }
 
   return { success: true };
 }
