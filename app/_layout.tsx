@@ -1,14 +1,26 @@
-import { useEffect } from 'react';
-import { Stack, Redirect } from 'expo-router';
+﻿import { useEffect } from 'react';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { ActivityIndicator, View } from 'react-native';
 
 export default function RootLayout() {
   const { user, isLoading, initialize } = useAuthStore();
+  const router = useRouter();
+  const segments = useSegments();
 
   useEffect(() => {
     initialize();
   }, []);
+
+  useEffect(() => {
+    if (isLoading) return;
+    const inAuthGroup = segments[0] === 'auth';
+    if (!user && !inAuthGroup) {
+      router.replace('/auth');
+    } else if (user && inAuthGroup) {
+      router.replace('/');
+    }
+  }, [user, isLoading]);
 
   if (isLoading) {
     return (
@@ -16,10 +28,6 @@ export default function RootLayout() {
         <ActivityIndicator size="large" color="#6366f1" />
       </View>
     );
-  }
-
-  if (!user) {
-    return <Redirect href="/auth" />;
   }
 
   return (
