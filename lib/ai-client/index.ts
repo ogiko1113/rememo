@@ -23,7 +23,12 @@ async function callGemini<T>(
       body: JSON.stringify({
         system_instruction: { parts: [{ text: systemPrompt }] },
         contents: [{ parts: [{ text: userContent }] }],
-        generationConfig: { maxOutputTokens, temperature: 0.3, responseMimeType: 'application/json' },
+        generationConfig: {
+          maxOutputTokens,
+          temperature: 0.3,
+          responseMimeType: 'application/json',
+          thinkingConfig: { thinkingBudget: 0 },
+        },
       }),
     },
   );
