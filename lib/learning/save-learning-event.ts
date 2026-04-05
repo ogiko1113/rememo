@@ -19,7 +19,7 @@ export async function saveLearningEvent(
     p_raw_text: rawText ?? null,
     p_difficulty: extractionResult.difficulty,
     p_key_points: extractionResult.key_points,
-    p_points_to_consume: 1,
+    p_points_to_consume: sourceType === 'youtube' ? 2 : 1,
   });
 
   if (error) {

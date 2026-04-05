@@ -28,6 +28,7 @@ export default function RootLayout() {
       <Stack.Screen name="auth" />
       <Stack.Screen name="review/[id]" />
       <Stack.Screen name="learn/memo" />
+      <Stack.Screen name="learn/youtube" />
       <Stack.Screen name="learn/confirm" />
     </Stack>
   );
