@@ -13,7 +13,7 @@ const sources = [
     icon: '🎥',
     title: 'YouTube URL',
     description: '動画の要点をAIが抽出',
-    implemented: false,
+    implemented: true,
   },
   {
     icon: '📚',
@@ -33,6 +33,8 @@ export default function LearnScreen() {
     }
     if (source.title === 'メモを入力') {
       router.push('/learn/memo');
+    } else if (source.title === 'YouTube URL') {
+      router.push('/learn/youtube');
     }
   };
 

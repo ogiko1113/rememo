@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../lib/stores/auth-store';
 import { useUserStore } from '../../lib/stores/user-store';
 import { useLearningStore } from '../../lib/stores/learning-store';
-import { extractKeyPoints } from '../../lib/ai-client';
+import { extractKeyPoints, extractKeyPointsFromYoutube } from '../../lib/ai-client';
 import { getUserSettings } from '../../lib/supabase-client';
 import { saveLearningEvent } from '../../lib/learning/save-learning-event';
 import type { KeyPoint } from '../../lib/types';
@@ -23,7 +23,7 @@ export default function ConfirmScreen() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const setSettings = useUserStore((s) => s.setSettings);
-  const { rawText, extractionResult, updateResult, clear } = useLearningStore();
+  const { rawText, extractionResult, sourceType, sourceUrl, updateResult, clear } = useLearningStore();
 
   const [title, setTitle] = useState(extractionResult?.title ?? '');
   const [keyPoints, setKeyPoints] = useState<KeyPoint[]>(
@@ -48,11 +48,11 @@ export default function ConfirmScreen() {
     if (!user || keyPoints.length === 0) return;
     setSaving(true);
     try {
-      const result = await saveLearningEvent(user.id, 'memo', {
+      const result = await saveLearningEvent(user.id, sourceType, {
         ...extractionResult,
         title,
         key_points: keyPoints,
-      }, undefined, rawText);
+      }, sourceUrl ?? undefined, rawText || undefined);
 
       if (result.success) {
         clear();
@@ -76,7 +76,9 @@ export default function ConfirmScreen() {
   const handleRetry = async () => {
     setRetrying(true);
     try {
-      const result = await extractKeyPoints(rawText);
+      const result = sourceType === 'youtube' && sourceUrl
+        ? await extractKeyPointsFromYoutube(sourceUrl)
+        : await extractKeyPoints(rawText);
       updateResult(result);
       setTitle(result.title);
       setKeyPoints(result.key_points);
