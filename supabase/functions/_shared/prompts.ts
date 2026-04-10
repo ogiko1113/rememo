@@ -1,3 +1,7 @@
+// System prompts used by Edge Functions when calling Gemini.
+// Kept in sync with the original lib/ai-client/prompts.ts before the
+// move to server-side execution. If you change one, change the other.
+
 export const EXTRACTION_PROMPT = `あなたは学習コンテンツの要点抽出エキスパートです。
 以下のテキストから、学習者が復習時に「説明できるべき要点」を抽出してください。
 
