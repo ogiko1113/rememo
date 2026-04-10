@@ -1,9 +1,9 @@
 import { getSupabase } from '../supabase-client';
-import type { ExtractionResult } from '../types';
+import type { ExtractionResult, SourceType } from '../types';
 
 export async function saveLearningEvent(
   userId: string,
-  sourceType: 'memo' | 'youtube' | 'pdf',
+  sourceType: SourceType,
   extractionResult: ExtractionResult,
   sourceUrl?: string,
   rawText?: string,

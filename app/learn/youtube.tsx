@@ -101,7 +101,7 @@ export default function YoutubeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1a1a2e' },
+  container: { flex: 1, paddingTop: 60, backgroundColor: '#1a1a2e' },
   scroll: { flexGrow: 1, padding: 24 },
   input: {
     backgroundColor: '#0f172a',
