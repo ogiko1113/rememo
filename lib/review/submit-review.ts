@@ -3,7 +3,7 @@ import { reviewCard, scoreToQuality } from '../srs-engine';
 import { getSupabase } from '../supabase-client';
 import { getKeyPointsForEvent } from '../supabase-client/queries';
 import type { ScoringResult, SRSReviewResult, KeyPoint } from '../types';
-import { XP_REWARDS } from '../types';
+import { POINT_COSTS, XP_REWARDS } from '../types';
 
 interface CardWithRelations {
   id: string;
@@ -59,7 +59,7 @@ export async function submitReview(
       p_follow_up_question: scoringResult.follow_up_question,
       p_srs_quality: scoringResult.srs_quality,
       p_xp_earned: XP_REWARDS.text_answer,
-      p_points_to_consume: 1,
+      p_points_to_consume: POINT_COSTS.text_answer,
       p_new_ef: reviewResult.new_easiness_factor,
       p_new_interval: reviewResult.new_interval,
       p_new_repetitions: reviewResult.new_repetitions,

@@ -10,7 +10,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     initialize();
-  }, []);
+  }, [initialize]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -20,7 +20,7 @@ export default function RootLayout() {
     } else if (user && inAuthGroup) {
       router.replace('/');
     }
-  }, [user, isLoading]);
+  }, [user, isLoading, router, segments]);
 
   if (isLoading) {
     return (
