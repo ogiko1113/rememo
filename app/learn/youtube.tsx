@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View, Text, TextInput, Image, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { extractKeyPointsFromYoutube } from '../../lib/ai-client';
 import { useLearningStore } from '../../lib/stores/learning-store';
@@ -46,11 +47,12 @@ export default function YoutubeScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <TextInput
           style={styles.input}
           placeholder="YouTube URLを貼り付け"
@@ -76,32 +78,34 @@ export default function YoutubeScreen() {
         ) : null}
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
-      </ScrollView>
+        </ScrollView>
 
-      <View style={styles.footer}>
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color="#6366f1" />
-            <Text style={styles.loadingText}>
-              抽出中...（動画の長さによって1〜2分かかります）
-            </Text>
-          </View>
-        ) : (
-          <TouchableOpacity
-            style={[styles.button, !canSubmit && styles.buttonDisabled]}
-            onPress={handleExtract}
-            disabled={!canSubmit}
-          >
-            <Text style={styles.buttonText}>AIで要点を抽出する</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    </KeyboardAvoidingView>
+        <View style={styles.footer}>
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#6366f1" />
+              <Text style={styles.loadingText}>
+                抽出中...（動画の長さによって1〜2分かかります）
+              </Text>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={[styles.button, !canSubmit && styles.buttonDisabled]}
+              onPress={handleExtract}
+              disabled={!canSubmit}
+            >
+              <Text style={styles.buttonText}>AIで要点を抽出する</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: 60, backgroundColor: '#1a1a2e' },
+  container: { flex: 1, backgroundColor: '#1a1a2e' },
+  flex: { flex: 1 },
   scroll: { flexGrow: 1, padding: 24 },
   input: {
     backgroundColor: '#0f172a',
