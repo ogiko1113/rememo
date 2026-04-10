@@ -1,5 +1,6 @@
 import { getSupabase } from '../supabase-client';
 import type { ExtractionResult, SourceType } from '../types';
+import { POINT_COSTS } from '../types';
 
 export async function saveLearningEvent(
   userId: string,
@@ -19,7 +20,7 @@ export async function saveLearningEvent(
     p_raw_text: rawText ?? null,
     p_difficulty: extractionResult.difficulty,
     p_key_points: extractionResult.key_points,
-    p_points_to_consume: sourceType === 'youtube' ? 2 : 1,
+    p_points_to_consume: sourceType === 'youtube' ? POINT_COSTS.youtube_10min : POINT_COSTS.memo,
   });
 
   if (error) {

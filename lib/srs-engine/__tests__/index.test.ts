@@ -1,4 +1,4 @@
-import { reviewCard, createDefaultCard, scoreToQuality } from '../index';
+import { reviewCard, scoreToQuality } from '../index';
 
 describe('SM-2 SRS Engine', () => {
   const baseCard = { id: 'test-card-1', easiness_factor: 2.5, interval: 0, repetitions: 0 };
@@ -54,16 +54,6 @@ describe('SM-2 SRS Engine', () => {
         expect(result.new_easiness_factor).toBeGreaterThanOrEqual(1.3);
         expect(result.new_interval).toBeGreaterThanOrEqual(1);
       }
-    });
-  });
-
-  describe('createDefaultCard', () => {
-    it('should create card with default values', () => {
-      const card = createDefaultCard('user-1', 'unit-1');
-      expect(card.easiness_factor).toBe(2.5);
-      expect(card.interval).toBe(0);
-      expect(card.repetitions).toBe(0);
-      expect(card.last_reviewed_at).toBeNull();
     });
   });
 

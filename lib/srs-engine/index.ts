@@ -49,21 +49,6 @@ export function reviewCard(
   };
 }
 
-export function createDefaultCard(
-  userId: string,
-  learningUnitId: string,
-): Omit<SRSCard, 'id' | 'created_at'> {
-  return {
-    user_id: userId,
-    learning_unit_id: learningUnitId,
-    easiness_factor: SM2_DEFAULTS.INITIAL_EASINESS,
-    interval: 0,
-    repetitions: 0,
-    next_review_at: new Date().toISOString(),
-    last_reviewed_at: null,
-  };
-}
-
 export function scoreToQuality(score: number): number {
   if (score >= 90) return 5;
   if (score >= 75) return 4;
@@ -71,8 +56,4 @@ export function scoreToQuality(score: number): number {
   if (score >= 40) return 2;
   if (score >= 20) return 1;
   return 0;
-}
-
-export function getDueCardsFilter(): { column: string; value: string } {
-  return { column: 'next_review_at', value: new Date().toISOString() };
 }
