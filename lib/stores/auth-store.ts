@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { User } from '@supabase/supabase-js';
+import type { Subscription, User } from '@supabase/supabase-js';
 import { supabase } from '../supabase-client/config';
 
 interface AuthState {
@@ -10,20 +10,26 @@ interface AuthState {
   initialize: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+// 同期フラグ: useEffect 二重実行 / getSession resolve 前の再呼び出しに耐える
+let initialized = false;
+let authSubscription: Subscription | null = null;
+
+export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isLoading: true,
   setUser: (user) => set({ user }),
   setLoading: (isLoading) => set({ isLoading }),
   initialize: () => {
-    if (!get().isLoading) return;
+    if (initialized) return;
+    initialized = true;
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       set({ user: session?.user ?? null, isLoading: false });
     });
 
-    supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       set({ user: session?.user ?? null });
     });
+    authSubscription = subscription;
   },
 }));
