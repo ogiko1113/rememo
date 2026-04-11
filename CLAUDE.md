@@ -50,6 +50,7 @@ docs/         # 設計ドキュメント
 - 外部API呼び出しは必ずSupabase Edge Function経由
 - EXPO_PUBLIC_ 接頭辞の環境変数には秘密情報を入れない
 - RPC関数は auth.uid() で呼び出し元を必ず検証する
+- Supabase Edge Function を `supabase functions deploy` する際は必ず `--no-verify-jwt` フラグを付ける（既定の JWT 検証で 401 が発生した障害の再発防止、`docs/postmortem-edge-function-jwt.md` 参照）
 
 ## データ整合性ルール
 - 複数テーブルの更新は必ずSupabase RPCで1トランザクションに閉じる
